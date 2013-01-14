@@ -36,20 +36,13 @@ L<Lingua::EN::FindNumber> and take different actions.
 
 our @EXPORT_OK = qw/is_ordinal/;
 
-my $ORDINAL_RE = qr/(?:first|st|second|nd|third|rd|th)\s*$/;
+my $ORDINAL_WORDS_NUMBER_RE = qr/(?:first|second|third|th)\s*$/;
 
-my $NUMBER_RE  = qr/^\s*(?:[+-]?)(?=\d|\.\d)\d*(?:\.\d*)?(?:[Ee](?:[+-]?\d+))?(?:st|nd|rd|th)?\s*$/;
+my $NUMBER_RE  = qr/^\s*(?:[+-]?)(?=\d|\.\d)\d*(?:\.\d*)?(?:[Ee](?:[+-]?\d+))?/;
 
-my $is_number = sub {
-    my $text = shift;
-    s/^\s+//, s/\s+$// for $text;
-    
-    my @nums = extract_numbers $text;
+my $CARDINAL_NUMBER_RE = qr/$NUMBER_RE\s*$/;
 
-    return undef if (@nums != 1 || $nums[0] ne $text) && $text !~ $NUMBER_RE;
-
-    return 1;
-};
+my $ORDINAL_NUMBER_RE  = qr/$NUMBER_RE(?:st|nd|rd|th)\s*$/;
 
 =head1 FUNCTIONS
 
@@ -66,12 +59,57 @@ This function can be optionally imported.
 
 =cut
 
-sub is_ordinal {
-    my $num = shift;
+sub is_ordinal { __PACKAGE__->_is_ordinal(@_) }
 
-    die "not a number" unless $is_number->($num);
+=head1 METHODS
 
-    return $num =~ $ORDINAL_RE ? 1 : undef;
+=head2 _is_ordinal
+
+Method version of L</is_ordinal>, this is where the function is actually
+implemented. Can be overloaded in a subclass.
+
+=cut
+
+sub _is_ordinal {
+    my ($self, $num) = @_;
+
+    die "not a number" unless $self->_is_number($num);
+
+    if ($num =~ $ORDINAL_NUMBER_RE) {
+        return 1;
+    }
+    elsif ($num =~ $CARDINAL_NUMBER_RE) {
+        return undef;
+    }
+    elsif ($num =~ $ORDINAL_WORDS_NUMBER_RE) {
+        return 1;
+    }
+
+    return undef; # cardinal words-number
+}
+
+=head2 _is_number
+
+Returns C<1> if the passed in string is a word-number as detected by
+L<Lingua::EN::FindNumber> or is a cardinal or ordinal number made of digits and
+(for ordinal numbers) a suffix. Otherwise returns C<undef>. Can be overloaded in
+a subclass.
+
+=cut
+
+sub _is_number {
+    my ($self, $text) = @_;
+    s/^\s+//, s/\s+$// for $text;
+    
+    my @nums = extract_numbers $text;
+
+    if ((@nums == 1 && $nums[0] eq $text)
+        || $text =~ $ORDINAL_NUMBER_RE || $text =~ $CARDINAL_NUMBER_RE) {
+
+        return 1;
+    }
+
+    return undef;
 }
 
 =head1 SEE ALSO
