@@ -128,6 +128,13 @@ sub _is_number {
 
 Rafael Kitover <rkitover@cpan.org>
 
+=head1 LICENSE
+
+Copyright 2013-2015 by Rafael Kitover
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
 =cut
 
 1;
