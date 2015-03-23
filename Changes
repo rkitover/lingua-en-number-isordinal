@@ -1,6 +1,8 @@
 Revision history for Lingua::EN::Number::IsOrdinal
 
 {{$NEXT}}
+
+0.05 2015-03-23 00:06:52
     - merge PR #1 to add Test::Kwalitee and License info
 
 0.04 2013-01-13 22:53:26
